@@ -1,32 +1,13 @@
 const toast = document.getElementById('toast');
-const doc = document.getElementById('agreementDocument');
+const doc = document.getElementById('document');
 
 function showToast(message) {
+  if (!toast) return;
   toast.textContent = message;
   toast.classList.add('show');
   clearTimeout(window.__toastTimer);
   window.__toastTimer = setTimeout(() => toast.classList.remove('show'), 2600);
 }
-
-document.getElementById('saveBtn').addEventListener('click', () => {
-  showToast('Agreement saved as a draft.');
-});
-
-document.getElementById('signBtn').addEventListener('click', () => {
-  showToast('Signing flow is ready for the final agreement stage.');
-});
-
-document.getElementById('cancelBtn').addEventListener('click', () => {
-  const ok = window.confirm('Cancel this agreement draft?');
-  if (ok) showToast('Agreement marked for cancellation.');
-});
-
-document.getElementById('clientViewBtn').addEventListener('click', (event) => {
-  document.body.classList.toggle('client-mode');
-  const active = document.body.classList.contains('client-mode');
-  event.currentTarget.textContent = active ? 'Developer View' : 'Client View';
-  showToast(active ? 'Client preview enabled.' : 'Developer preview enabled.');
-});
 
 document.getElementById('downloadPdf').addEventListener('click', async () => {
   const button = document.getElementById('downloadPdf');
@@ -36,9 +17,10 @@ document.getElementById('downloadPdf').addEventListener('click', async () => {
 
   try {
     if (!window.html2canvas || !window.jspdf) throw new Error('PDF libraries did not load');
+
     const canvas = await window.html2canvas(doc, {
       scale: 2,
-      backgroundColor: '#fcfcfa',
+      backgroundColor: '#fffdf8',
       useCORS: true,
       logging: false
     });
@@ -47,24 +29,24 @@ document.getElementById('downloadPdf').addEventListener('click', async () => {
     const pdf = new jsPDF('p', 'mm', 'a4');
     const pageWidth = 210;
     const pageHeight = 297;
-    const margin = 10;
+    const margin = 8;
     const usableWidth = pageWidth - margin * 2;
-    const imgHeight = (canvas.height * usableWidth) / canvas.width;
-    const imgData = canvas.toDataURL('image/jpeg', 0.96);
+    const imageHeight = (canvas.height * usableWidth) / canvas.width;
+    const imageData = canvas.toDataURL('image/jpeg', 0.97);
 
-    let heightLeft = imgHeight;
+    let remaining = imageHeight;
     let position = margin;
-    pdf.addImage(imgData, 'JPEG', margin, position, usableWidth, imgHeight);
-    heightLeft -= pageHeight - margin * 2;
+    pdf.addImage(imageData, 'JPEG', margin, position, usableWidth, imageHeight);
+    remaining -= pageHeight - margin * 2;
 
-    while (heightLeft > 0) {
-      position = -(imgHeight - heightLeft) + margin;
+    while (remaining > 0) {
+      position = -(imageHeight - remaining) + margin;
       pdf.addPage();
-      pdf.addImage(imgData, 'JPEG', margin, position, usableWidth, imgHeight);
-      heightLeft -= pageHeight - margin * 2;
+      pdf.addImage(imageData, 'JPEG', margin, position, usableWidth, imageHeight);
+      remaining -= pageHeight - margin * 2;
     }
 
-    pdf.save('RDS-2026-001-Project-Agreement.pdf');
+    pdf.save('Rahul-Development-Studio-Client-Guide-Service-Policy.pdf');
     showToast('PDF downloaded successfully.');
   } catch (error) {
     console.error(error);
